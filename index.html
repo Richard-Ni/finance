@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stock Data</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.2.2/dist/echarts.min.js"></script>
+</head>
+<body>
+<h1>Stock Data</h1>
+<div>
+    <label for="symbol-input">Symbol:</label>
+    <input type="text" id="symbol-input" required>
+    <button type="button" onclick="getStockData()">Submit</button>
+</div>
+<div id="chart" style="width: 100%; height: 800px;"></div>
+
+<script>
+    var chart = echarts.init(document.getElementById('chart'));
+
+    function getStockData() {
+        var symbol = document.getElementById("symbol-input").value;
+
+        axios.post('/getStockData', {
+            symbol: symbol
+        }).then(function(response) {
+            var data = response.data;
+
+            var option = {
+                title: {
+                    text: 'K Line for ' + data.symbol
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'cross'
+                    }
+                },
+                xAxis: {
+                    type: 'category',
+                    data: data.dates,
+                    scale: true,
+                    boundaryGap: false,
+                    axisLine: { onZero: false },
+                    splitLine: { show: false },
+                    splitNumber: 20,
+                    min: 'dataMin',
+                    max: 'dataMax'
+                },
+                yAxis: [{
+                    scale: true,
+                    splitArea: {show: true}
+                }, {
+                    scale: true,
+                    splitArea: {show: true},
+                    position: 'right',
+                    offset: 80
+                }],
+                dataZoom: [{
+                    type: 'inside',
+                    start: 50,
+                    end: 100
+                }, {
+                    show: true,
+                    type: 'slider',
+                    y: '90%',
+                    start: 50,
+                    end: 100
+                }],
+                series: [{
+                    name: 'K Line',
+                    type: 'candlestick',
+                    data: data.kLineValues,
+                    itemStyle: {
+                        color: '#ef232a',
+                        color0: '#14b143',
+                        borderColor: '#ef232a',
+                        borderColor0: '#14b143'
+                    }
+                }, {
+                    name: 'Volume',
+                    type: 'bar',
+                    yAxisIndex: 1,
+                    data: data.volumeValues
+                }]
+            };
+            chart.setOption(option);
+        }).catch(function(error) {
+            console.log(error);
+        });
+    }
+</script>
+</body>
+</html>
